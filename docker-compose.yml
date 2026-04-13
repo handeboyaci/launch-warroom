@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - pip-cache:/root/.cache/pip
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app/src
+    working_dir: /app
+    command: ["tail", "-f", "/dev/null"]  # Keep alive for exec
+
+volumes:
+  pip-cache:

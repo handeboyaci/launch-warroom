@@ -1,0 +1,59 @@
+[project]
+name = "oncology-warroom"
+version = "0.1.0"
+description = "Oncology Launch War-Room: Multi-Agent FTO & Clinical Strategy System"
+requires-python = ">=3.11"
+dependencies = [
+    # --- LangChain / LangGraph ---
+    "langgraph>=0.4",
+    "langchain>=0.3",
+    "langchain-google-genai>=2.1",
+    "langchain-community>=0.3",
+
+    # --- Database ---
+    # sqlite3 is stdlib
+
+    # --- Vector Store & Embeddings ---
+    "chromadb>=0.5",
+    "sentence-transformers>=3.0",
+
+    # --- Data & HTTP ---
+    "pandas>=2.2",
+    "requests>=2.31",
+    "httpx>=0.27",
+
+    # --- Utilities ---
+    "python-dotenv>=1.0",
+    "pydantic>=2.7",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-mock>=3.14",
+    "ruff>=0.4",
+    "ty>=0.0.23",
+]
+
+[tool.ruff]
+line-length = 88
+indent-width = 2
+target-version = "py311"
+
+[tool.ruff.format]
+indent-style = "space"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ty.environment]
+python-version = "3.11"
+
+[tool.ty.rules]
+"all" = "error"
