@@ -241,16 +241,23 @@ def ingest_all(
     "studies", conn, raw_dir, filter_dates=True, nct_ids=nct_ids
   )
 
-  # 2. Ingest remaining tables.
+  # 2. Get the NCT IDs that survived the filter.
+  cursor = conn.execute("SELECT nct_id FROM studies")
+  valid_nct_ids = [row[0] for row in cursor.fetchall()]
 
+  if not valid_nct_ids:
+    logger.warning("No studies survived temporal filter — child tables will be empty.")
+    return results
 
+  # 3. Ingest child tables, restricted to valid NCT IDs.
   child_tables = [t for t in TABLE_COLUMNS if t != "studies"]
   for table_name in child_tables:
     results[table_name] = ingest_table(
       table_name,
       conn,
       raw_dir,
-      filter_dates=False,
+      filter_dates=False,  # Filtered via NCT ID join
+      nct_ids=valid_nct_ids,
     )
 
   return results
