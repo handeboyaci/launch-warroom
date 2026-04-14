@@ -144,7 +144,7 @@ def query(
     collection = get_collection()
 
   # Build the where clause with mandatory temporal filter.
-  temporal_filter = {"published_date": {"$lt": TIME_CUTOFF}}
+  temporal_filter = {"published_date_int": {"$lte": TIME_CUTOFF_INT}}
 
   if extra_where:
     where_clause = {"$and": [temporal_filter, extra_where]}
