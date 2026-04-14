@@ -110,6 +110,7 @@ def parse_pubmed_abstracts(
         "Skipping PMID %s: published_date=%r (missing, unparseable, or after cutoff)",
         article.get("pmid"),
         pub_date,
+      )
       continue
 
     # Combine title + abstract for richer context.
@@ -137,6 +138,7 @@ def parse_pubmed_abstracts(
           ],  # Keep it reasonable
           "chunk_index": str(i),
         },
+      )
       documents.append(doc)
 
   logger.info(
@@ -177,4 +179,49 @@ def parse_openfda_labels(
   documents: list[Document] = []
   for label in labels:
     effective_date = label.get("effective_date", "")
-    # Use effective_date as-is.
+    # Normalise YYYYMMDD → YYYY-MM-DD.
+    if len(effective_date) == 8:
+      effective_date = (
+        f"{effective_date[:4]}-{effective_date[4:6]}-{effective_date[6:]}"
+      )
+
+    # Enforce time cutoff.
+    if not is_before_cutoff(effective_date):
+      logger.warning(
+        "Skipping label %s: effective_date=%r (missing, unparseable, or after cutoff)",
+        label.get("set_id"),
+        effective_date,
+      )
+      continue
+
+    drug_name = label.get("generic_name") or label.get("brand_name") or "unknown"
+
+    for field_key, section_name in sections:
+      text = label.get(field_key, "")
+      if not text:
+        continue
+
+      chunks = chunk_text(text)
+      for i, chunk in enumerate(chunks):
+        doc = Document(
+          text=f"[{drug_name.upper()} — {section_name}]\n{chunk}",
+          metadata={
+            "source": "openfda",
+            "doc_type": "label",
+            "section": section_name,
+            "set_id": label.get("set_id", ""),
+            "drug_name": drug_name.lower(),
+            "brand_name": label.get("brand_name", ""),
+            "published_date": effective_date,
+            "manufacturer": label.get("manufacturer", ""),
+            "chunk_index": str(i),
+          },
+        )
+        documents.append(doc)
+
+  logger.info(
+    "Parsed %d chunks from %d FDA labels",
+    len(documents),
+    len(labels),
+  )
+  return documents
