@@ -58,6 +58,15 @@ def clinical_intel_node(state: WarRoomState, config: RunnableConfig) -> dict:
     result = agent.invoke({"messages": messages}, config)
     final_output = result["messages"][-1].content
 
+    # Flatten list of content blocks if necessary
+    if isinstance(final_output, list):
+      parts = []
+      for item in final_output:
+        if isinstance(item, dict) and "text" in item:
+          parts.append(str(item["text"]))
+        else:
+          parts.append(str(item))
+      final_output = "\n".join(parts)
 
     if not isinstance(final_output, str):
       final_output = str(final_output)
