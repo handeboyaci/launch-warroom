@@ -225,7 +225,22 @@ def _sanitize_strategic_text(text: str) -> str:
     r"(?<![-/])\b(202[2-9]|20[3-9]\d)\b(?![-/])", "[REDACTED: FUTURE YEAR]", sanitized
   )
 
+  # Scrape Future Phrasing
+  future_phrases = [
+    (
+      r"(?:went on to|would later|subsequently|eventually)\s+"
+      r"(?:show|demonstrate|receive|gain|achieve)"
+    ),
+    r"(?:ultimately|in the end|as we now know)",
+    r"(?:has since|have since)\s+(?:been|shown|demonstrated)",
+  ]
+  for phrase in future_phrases:
+    sanitized = re.sub(
+      phrase, "[REDACTED: FUTURE KNOWLEDGE]", sanitized, flags=re.IGNORECASE
+    )
+
   return sanitized
+
 
 def _sanitize_citations(citations: list[str]) -> list[str]:
   """Filter out PMIDs > 33450000 from citation lists."""
