@@ -199,12 +199,13 @@ def _scan_dates(text: str) -> list[str]:
   for match in re.finditer(pattern, text, re.IGNORECASE):
     month = month_map[match.group(1).lower()]
     year = match.group(2)
-    # Defaulting to 01 of the month allows referring to the current month (Jan 2021)
-    # while still flagging any future months (Feb 2021+).
-    date_str = f"{year}-{month}-01"
+    # Use the 15th of the month as a midpoint heuristic.
+    # "January 2021" is ambiguous (could mean Jan 16–31, after cutoff),
+    # so we flag the cutoff month itself as a potential leak.
+    date_str = f"{year}-{month}-15"
     parsed = parse_date(date_str)
     cutoff = parse_date(TIME_CUTOFF)
-    if parsed and cutoff and parsed > cutoff:
+    if parsed and cutoff and parsed >= cutoff:
       leaks.append(f"[DATE] Post-cutoff month/year found: {match.group(1)} {year}")
 
   # Standalone Years: Catch any mention of 2021 or later.
